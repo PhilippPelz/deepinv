@@ -13,7 +13,7 @@ from deepinv.models import DnCNN
 from deepinv.optim.data_fidelity import L2
 from deepinv.optim.prior import PnP
 from deepinv.optim.optimizers import optim_builder
-from deepinv.utils.demo import load_url_image
+from deepinv.utils.demo import load_url_image, get_image_url
 from deepinv.utils.plotting import plot, plot_curves
 from deepinv.optim.optim_iterators import OptimIterator, fStep, gStep
 
@@ -114,7 +114,7 @@ class fStepCV(fStep):
         :param deepinv.physics physics: Instance of the physics modeling the data-fidelity term.
         """
         return cur_data_fidelity.prox_d_conjugate(
-            u, y, cur_params["sigma"], lamb=cur_params["lambda"]
+            u, y, gamma=cur_params["sigma"], lamb=cur_params["lambda"]
         )
 
 
@@ -135,7 +135,7 @@ class gStepCV(gStep):
         :param dict cur_params: Dictionary containing the current gStep parameters
             (keys `"stepsize"` and `"g_param"`).
         """
-        return cur_prior.prox(v, cur_params["stepsize"], cur_params["g_param"])
+        return cur_prior.prox(v, cur_params["g_param"], gamma=cur_params["stepsize"])
 
 
 # %%
@@ -161,10 +161,7 @@ device = dinv.utils.get_freer_gpu() if torch.cuda.is_available() else "cpu"
 method = "PnP"
 dataset_name = "set3c"
 img_size = 64
-url = (
-    "https://mycore.core-cloud.net/index.php/s/"
-    "9EzDqcJxQUJKYul/download?path=%2Fdatasets&files=barbara.jpeg"
-)
+url = get_image_url("barbara.jpeg")
 
 x = load_url_image(
     url=url, img_size=img_size, grayscale=True, resize_mode="resize", device=device

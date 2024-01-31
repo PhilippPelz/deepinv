@@ -13,7 +13,7 @@ from deepinv.models import DnCNN
 from deepinv.optim.data_fidelity import L2
 from deepinv.optim.prior import PnP
 from deepinv.optim.optimizers import optim_builder
-from deepinv.utils.demo import load_url_image
+from deepinv.utils.demo import load_url_image, get_image_url
 from deepinv.utils.plotting import plot, plot_curves
 
 # %%
@@ -34,7 +34,7 @@ device = dinv.utils.get_freer_gpu() if torch.cuda.is_available() else "cpu"
 # Set up the variable to fetch dataset and operators.
 method = "PnP"
 img_size = 32
-url = "https://mycore.core-cloud.net/index.php/s/9EzDqcJxQUJKYul/download?path=%2Fdatasets&files=SheppLogan.png"
+url = get_image_url("SheppLogan.png")
 x = load_url_image(
     url=url, img_size=img_size, grayscale=True, resize_mode="resize", device=device
 )

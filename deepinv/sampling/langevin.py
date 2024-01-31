@@ -17,7 +17,7 @@ class MonteCarlo(nn.Module):
 
     ::
 
-        # define custom sampling kernel (possibly a Markov kernel which depends on the previous sanple).
+        # define custom sampling kernel (possibly a Markov kernel which depends on the previous sample).
         class MyKernel(torch.torch.nn.Module):
             def __init__(self, iterator_params):
                 super().__init__()
@@ -58,6 +58,9 @@ class MonteCarlo(nn.Module):
     :param tuple clip: Tuple containing the box-constraints :math:`[a,b]`.
         If ``None``, the algorithm will not project the samples.
     :param float crit_conv: Threshold for verifying the convergence of the mean and variance estimates.
+    :param function_handle g_statistic: The sampler will compute the posterior mean and variance
+        of the function g_statistic. By default, it is the identity function (lambda x: x),
+        and thus the sampler computes the posterior mean and variance.
     :param bool verbose: prints progress of the algorithm.
 
     """
@@ -95,7 +98,7 @@ class MonteCarlo(nn.Module):
         self.save_chain = save_chain
         self.chain = []
 
-    def forward(self, y, physics, seed=None):
+    def forward(self, y, physics, seed=None, x_init=None):
         r"""
         Runs an Monte Carlo chain to obtain the posterior mean and variance of the reconstruction of the measurements y.
 
@@ -115,7 +118,10 @@ class MonteCarlo(nn.Module):
                 C_upper_lim = self.C_set[1]
 
             # Initialization
-            x = physics.A_adjoint(y)  # .cuda(device).detach().clone()
+            if x_init is None:
+                x = physics.A_adjoint(y)
+            else:
+                x = x_init
 
             # Monte Carlo loop
             start_time = time.time()
@@ -131,7 +137,7 @@ class MonteCarlo(nn.Module):
                 if self.C_set:
                     x = projbox(x, C_lower_lim, C_upper_lim)
 
-                if it > self.burnin_iter and (it % self.thinning) == 0:
+                if it >= self.burnin_iter and (it % self.thinning) == 0:
                     if it >= (self.max_iter - self.thinning):
                         mean_prev = statistics.mean().clone()
                         var_prev = statistics.var().clone()
@@ -222,10 +228,10 @@ class ULAIterator(nn.Module):
 
 class ULA(MonteCarlo):
     r"""
-    Plug-and-Play Unadjusted Langevin Algorithm.
+    Projected Plug-and-Play Unadjusted Langevin Algorithm.
 
     The algorithm runs the following markov chain iteration
-    https://arxiv.org/abs/2103.04715 :
+    (Algorithm 2 from https://arxiv.org/abs/2103.04715):
 
     .. math::
 
@@ -233,20 +239,23 @@ class ULA(MonteCarlo):
         \eta \alpha \nabla \log p(x_{k}) + \sqrt{2\eta}z_{k+1} \right).
 
     where :math:`x_{k}` is the :math:`k` th sample of the Markov chain,
-    :math:`\log p(y|x)` is the log-likelihood function, :math:`\log p(x)` is the log-prior
+    :math:`\log p(y|x)` is the log-likelihood function, :math:`\log p(x)` is the log-prior,
     :math:`\eta>0` is the step size, :math:`\alpha>0` controls the amount of regularization,
     :math:`\Pi_{[a,b]}(x)` projects the entries of :math:`x` to the interval :math:`[a,b]` and
     :math:`z\sim \mathcal{N}(0,I)` is a standard Gaussian vector.
 
 
-    - PnP-ULA assumes that the denoiser is :math:`L`-Lipschitz differentiable
+    - Projected PnP-ULA assumes that the denoiser is :math:`L`-Lipschitz differentiable
     - For convergence, ULA required step_size smaller than :math:`\frac{1}{L+\|A\|_2^2}`
+
 
     :param deepinv.optim.ScorePrior, torch.nn.Module prior: negative log-prior based on a trained or model-based denoiser.
     :param deepinv.optim.DataFidelity, torch.nn.Module data_fidelity: negative log-likelihood function linked with the
         noise distribution in the acquisition physics.
     :param float step_size: step size :math:`\eta>0` of the algorithm.
         Tip: use :meth:`deepinv.physics.Physics.compute_norm()` to compute the Lipschitz constant of the forward operator.
+    :param float sigma: noise level used in the plug-and-play prior denoiser. A larger value of sigma will result in
+        a more regularized reconstruction.
     :param float alpha: regularization parameter :math:`\alpha`
     :param int max_iter: number of Monte Carlo iterations.
     :param int thinning: Thins the Markov Chain by an integer :math:`\geq 1` (i.e., keeping one out of ``thinning``
@@ -256,6 +265,9 @@ class ULA(MonteCarlo):
     :param tuple clip: Tuple containing the box-constraints :math:`[a,b]`.
         If ``None``, the algorithm will not project the samples.
     :param float crit_conv: Threshold for verifying the convergence of the mean and variance estimates.
+    :param function_handle g_statistic: The sampler will compute the posterior mean and variance
+        of the function g_statistic. By default, it is the identity function (lambda x: x),
+        and thus the sampler computes the posterior mean and variance.
     :param bool verbose: prints progress of the algorithm.
 
     """
@@ -265,6 +277,7 @@ class ULA(MonteCarlo):
         prior,
         data_fidelity,
         step_size=1.0,
+        sigma=0.05,
         alpha=1.0,
         max_iter=1e3,
         thinning=5,
@@ -274,7 +287,6 @@ class ULA(MonteCarlo):
         save_chain=False,
         g_statistic=lambda x: x,
         verbose=False,
-        sigma=None,
     ):
         iterator = ULAIterator(step_size=step_size, alpha=alpha, sigma=sigma)
         super().__init__(
@@ -372,6 +384,11 @@ class SKRock(MonteCarlo):
     :param tuple clip: Tuple containing the box-constraints :math:`[a,b]`.
         If ``None``, the algorithm will not project the samples.
     :param bool verbose: prints progress of the algorithm.
+    :param float sigma: noise level used in the plug-and-play prior denoiser. A larger value of sigma will result in
+        a more regularized reconstruction.
+    :param function_handle g_statistic: The sampler will compute the posterior mean and variance
+        of the function g_statistic. By default, it is the identity function (lambda x: x),
+        and thus the sampler computes the posterior mean and variance.
 
     """
 
@@ -391,7 +408,7 @@ class SKRock(MonteCarlo):
         save_chain=False,
         g_statistic=lambda x: x,
         verbose=False,
-        sigma=None,
+        sigma=0.05,
     ):
         iterator = SKRockIterator(
             step_size=step_size,

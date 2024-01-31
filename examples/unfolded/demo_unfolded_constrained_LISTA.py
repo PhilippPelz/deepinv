@@ -3,7 +3,7 @@ Unfolded Chambolle-Pock for constrained image inpainting
 ====================================================================================================
 
 Image inpainting consists in solving :math:`y = Ax` where :math:`A` is a mask operator.
-This problem can be reformulated as the following minimisation problem:
+This problem can be reformulated as the following minimization problem:
 
 .. math::
 
@@ -245,9 +245,6 @@ train(
     save_path=str(CKPT_DIR / operation),
     verbose=verbose,
     wandb_vis=wandb_vis,
-    log_interval=1,
-    eval_interval=1,
-    ckp_interval=1,
 )
 
 # %%

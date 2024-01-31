@@ -30,7 +30,7 @@ i.e. for :math:`k=1,2,...`
 .. math::
     \qquad (x_{k+1}, z_{k+1}) = \operatorname{FixedPoint}(x_k, z_k, f, g, A, y, ...)
 
-where :math:`x` is a variable converging to the solution of the minimisation problem, and
+where :math:`x` is a variable converging to the solution of the minimization problem, and
 :math:`z` is an additional (dual) variable that may be required in the computation of the fixed point operator.
 
 
@@ -98,6 +98,7 @@ computing the proximity operator is overwritten by a method performing denoising
    deepinv.optim.RED
    deepinv.optim.ScorePrior
    deepinv.optim.Tikhonov
+   deepinv.optim.L1Prior
 
 
 .. _optim-params:
@@ -151,7 +152,7 @@ by an instance of physics and :math:`\regname` is a regularizer. The fixed point
 .. math::
     \qquad (x_{k+1}, z_{k+1}) = \operatorname{FixedPoint}(x_k, z_k, \datafidname, \regname, A, y, ...)
 
-where :math:`x` is a variable converging to the solution of the minimisation problem, and
+where :math:`x` is a variable converging to the solution of the minimization problem, and
 :math:`z` is an additional variable that may be required in the computation of the fixed point operator.
 
 .. autosummary::
@@ -175,8 +176,8 @@ relaxation parameters, etc...
 The fStep and gStep classes precisely implement these steps.
 
 
-Generic optimizers
-^^^^^^^^^^^^^^^^^^
+Generic Optimizers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following files contain the base classes for implementing generic optimizers:
 
@@ -185,89 +186,11 @@ The following files contain the base classes for implementing generic optimizers
    :template: myclass_template.rst
    :nosignatures:
 
-   deepinv.optim.optim_iterators.OptimIterator
-   deepinv.optim.optim_iterators.optim_iterator.fStep
-   deepinv.optim.optim_iterators.optim_iterator.gStep
-
-
-ADMM
-^^^^
-
-.. autosummary::
-   :toctree: stubs
-   :template: myclass_template.rst
-   :nosignatures:
-
-   deepinv.optim.optim_iterators.ADMMIteration
-   deepinv.optim.optim_iterators.admm.fStepADMM
-   deepinv.optim.optim_iterators.admm.gStepADMM
-
-
-Douglas-Rachford Splitting
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autosummary::
-   :toctree: stubs
-   :template: myclass_template.rst
-   :nosignatures:
-
-   deepinv.optim.optim_iterators.DRSIteration
-   deepinv.optim.optim_iterators.drs.fStepDRS
-   deepinv.optim.optim_iterators.drs.gStepDRS
-
-
-Gradient Descent
-^^^^^^^^^^^^^^^^
-
-.. autosummary::
-   :toctree: stubs
-   :template: myclass_template.rst
-   :nosignatures:
-
+   deepinv.optim.OptimIterator
+   deepinv.optim.optim_iterators.GDIteration
    deepinv.optim.optim_iterators.PGDIteration
-   deepinv.optim.optim_iterators.pgd.fStepPGD
-   deepinv.optim.optim_iterators.pgd.gStepPGD
-
-
-Proximal Gradient Descent
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autosummary::
-   :toctree: stubs
-   :template: myclass_template.rst
-   :nosignatures:
-
-   deepinv.optim.optim_iterators.PGDIteration
-   deepinv.optim.optim_iterators.pgd.fStepPGD
-   deepinv.optim.optim_iterators.pgd.gStepPGD
-
-
-
-Half-Quadratic Splitting
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autosummary::
-   :toctree: stubs
-   :template: myclass_template.rst
-   :nosignatures:
-
-   deepinv.optim.optim_iterators.HQSIteration
-   deepinv.optim.optim_iterators.hqs.fStepHQS
-   deepinv.optim.optim_iterators.hqs.gStepHQS
-
-
-
-Chambolle-Pock Primal-Dual Splitting
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autosummary::
-   :toctree: stubs
-   :template: myclass_template.rst
-   :nosignatures:
-
    deepinv.optim.optim_iterators.CPIteration
-   deepinv.optim.optim_iterators.primal_dual_CP.fStepCP
-   deepinv.optim.optim_iterators.primal_dual_CP.gStepCP
-
-
+   deepinv.optim.optim_iterators.ADMMIteration
+   deepinv.optim.optim_iterators.DRSIteration
+   deepinv.optim.optim_iterators.HQSIteration
 
