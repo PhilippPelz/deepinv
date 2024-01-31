@@ -1,3 +1,4 @@
+#%%
 """
 Vanilla PnP for computed tomography (CT).
 ====================================================================================================
@@ -135,3 +136,5 @@ plot(
 # plot convergence curves. Metrics are saved in RESULTS_DIR.
 if plot_metrics:
     plot_curves(metrics, save_dir=RESULTS_DIR / "curves", show=True)
+
+# %%
